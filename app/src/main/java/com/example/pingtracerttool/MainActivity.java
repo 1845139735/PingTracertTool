@@ -43,8 +43,11 @@ public class MainActivity extends AppCompatActivity {
     private final List<String> resultList = new ArrayList<>();
     private final PingResultAdapter adapter = new PingResultAdapter(resultList);
 
+    private SettingData settingData = new SettingData("32", "10", "100");
+    private final List<PingData> pingDataList = new ArrayList<>();
 
-    @SuppressLint("WrongViewCast")
+
+    @SuppressLint("WrongViewCast")//忽略错误的view
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,8 +73,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         searchButton.setOnClickListener(v -> {
-            if (searchButton.getText().equals("Ping")) {
+            if (searchButton.getText().equals("Ping")) {//ping
                 String text = inputText.getText().toString();
                 if (ToolHandler.isIP(text)) {
                     Log.d("MainActivity", "isIP");
@@ -81,44 +85,82 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, "请输入正确的Ip地址或域名", Toast.LENGTH_SHORT).show();
                 }
+            } else {//tracert
 
-
-            } else {
             }
         });
 
-        gateWayButton.setOnClickListener(v->{
+        gateWayButton.setOnClickListener(v -> {
             inputText.setText(getGateWay(this));
         });
-        dnsButton.setOnClickListener(v->{
+        dnsButton.setOnClickListener(v -> {
             inputText.setText(getDns(this));
         });
-        baiduButton.setOnClickListener(v->{
+        baiduButton.setOnClickListener(v -> {
             inputText.setText("www.baidu.com");
         });
-        delButton.setOnClickListener(v->{
+        delButton.setOnClickListener(v -> {
             inputText.setText("");
         });
 
     }
 
+    //执行ping命令
     private void executePing(final String ipAddress) {
+//        new Thread(() -> {
+//            try {
+//                Process process = Runtime.getRuntime().exec("ping -c 4 ".concat(ipAddress));
+//                BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//                String line;
+//                Log.d("Thread", "1");
+//                while ((line = inputStream.readLine()) != null) {
+//                    Log.d("Stream", line);
+//                    resultList.add(line);
+//                    flashUI();
+//                }
+//                Log.d("Thread", "over");
+//                process.waitFor();
+//                inputStream.close();
+//            } catch (IOException | InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }).start();
         new Thread(() -> {
             try {
-                Process process = Runtime.getRuntime().exec("ping -c 4 ".concat(ipAddress));
-                BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line;
-                Log.d("Thread", "1");
-                while ((line = inputStream.readLine()) != null) {
-                    Log.d("Stream", line);
-                    resultList.add(line);
+                pingDataList.clear();
+                StringBuilder command = new StringBuilder();
+                command.append("ping -c 1").append(" -s ").append(settingData.getBytes()).append(" ").append(ipAddress);
+                long startTime = System.currentTimeMillis();
+                for (int i = 0; i < Integer.parseInt(settingData.getCount()); i++) {
+                    Thread.sleep(Integer.parseInt(settingData.getInterval()));
+                    Process process = Runtime.getRuntime().exec(command.toString());
+                    BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    String line;
+                    String result = "";
+                    while ((line = inputStream.readLine()) != null) {
+                        result += line + "\n";
+                    }
+                    process.waitFor();
+                    inputStream.close();
+                    PingData pingData = new PingData(result);
+                    pingDataList.add(pingData);
+//                    resultList.add(result);
+                    resultList.add(pingData.toString());
                     flashUI();
                 }
-                process.waitFor();
-                inputStream.close();
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                long endTime = System.currentTimeMillis();
+                PingResultInfo pingResultInfo = new PingResultInfo(ipAddress,startTime,endTime,pingDataList);
+                resultList.add(pingResultInfo.toString());
+                flashUI();
+
+
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
+
         }).start();
     }
 
