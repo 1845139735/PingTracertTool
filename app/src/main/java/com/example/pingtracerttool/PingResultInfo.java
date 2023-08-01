@@ -1,5 +1,7 @@
 package com.example.pingtracerttool;
 
+import android.text.TextUtils;
+
 import java.util.List;
 
 public class PingResultInfo {
@@ -14,7 +16,20 @@ public class PingResultInfo {
     private double longestTime;
     private double averageTime;
 
-    public PingResultInfo(String ipAddress, long startTime,long endTime,List<PingData> pingDataList) {
+    public PingResultInfo(String ip, long totalTime, long startTime, int score, int sendCount, int receiveCount, double lossRate, double shortestTime, double longestTime, double averageTime) {
+        this.ip = ip;
+        this.totalTime = totalTime;
+        this.startTime = startTime;
+        this.score = score;
+        this.sendCount = sendCount;
+        this.receiveCount = receiveCount;
+        this.lossRate = lossRate;
+        this.shortestTime = shortestTime;
+        this.longestTime = longestTime;
+        this.averageTime = averageTime;
+    }
+
+    public PingResultInfo(String ipAddress, long startTime, long endTime, List<PingData> pingDataList) {
         this.ip = ipAddress;
         this.startTime = startTime;
         this.totalTime = endTime - startTime;
@@ -52,7 +67,13 @@ public class PingResultInfo {
         this.shortestTime = shortestTime;
         this.longestTime = longestTime;
         this.averageTime = totalTime / this.receiveCount;
-        this.score = (int) (this.averageTime * 100);
+        if(averageTime<=20)score=100;
+        else if(averageTime<=50)score=80;
+        else if(averageTime<=100)score=60;
+        else if(averageTime<=200)score=40;
+        else if(averageTime<=500)score=20;
+        else score=0;
+        score= (int) (score*(1-lossRate));
     }
 
     @Override
@@ -142,4 +163,47 @@ public class PingResultInfo {
     public void setAverageTime(double averageTime) {
         this.averageTime = averageTime;
     }
+
+    public String toSerializedString() {
+        // Use TextUtils.join() to join the fields with a delimiter (semicolon)
+        // Format: ip;totalTime;startTime;score;sendCount;receiveCount;lossRate;shortestTime;longestTime;averageTime
+        String[] data = {
+                ip,
+                String.valueOf(totalTime),
+                String.valueOf(startTime),
+                String.valueOf(score),
+                String.valueOf(sendCount),
+                String.valueOf(receiveCount),
+                String.valueOf(lossRate),
+                String.valueOf(shortestTime),
+                String.valueOf(longestTime),
+                String.valueOf(averageTime)
+        };
+        return TextUtils.join(",", data);
+    }
+
+    public static PingResultInfo fromSerializedString(String serializedData) {
+        if (TextUtils.isEmpty(serializedData)) {
+            return null;
+        }
+
+        String[] data = serializedData.split(",");
+        if (data.length != 10) {
+            return null;
+        }
+
+        String ip = data[0];
+        long totalTime = Long.parseLong(data[1]);
+        long startTime = Long.parseLong(data[2]);
+        int score = Integer.parseInt(data[3]);
+        int sendCount = Integer.parseInt(data[4]);
+        int receiveCount = Integer.parseInt(data[5]);
+        double lossRate = Double.parseDouble(data[6]);
+        double shortestTime = Double.parseDouble(data[7]);
+        double longestTime = Double.parseDouble(data[8]);
+        double averageTime = Double.parseDouble(data[9]);
+
+        return new PingResultInfo(ip, totalTime, startTime, score, sendCount, receiveCount, lossRate, shortestTime, longestTime, averageTime);
+    }
+
 }

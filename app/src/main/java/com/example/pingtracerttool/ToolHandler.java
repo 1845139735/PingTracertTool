@@ -50,7 +50,7 @@ public class ToolHandler {
                 }
             }
         }
-        return null;
+        return "0.0.0.0";
     }
 
     public static String getDns(Context context) {
