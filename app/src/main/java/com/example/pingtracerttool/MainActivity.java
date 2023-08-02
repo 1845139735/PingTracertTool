@@ -202,8 +202,11 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 pingDataList.clear();
+                resultList.clear();
+                resultList.add("Ping " + ipAddress + ":");
+                flashUI();
                 StringBuilder command = new StringBuilder();
-                command.append("ping -c 1 -W 4").append(" -s ").append(settingData.getBytes()).append(" ").append(ipAddress);
+                command.append("ping -c 1 -W 2").append(" -s ").append(settingData.getBytes()).append(" ").append(ipAddress);
                 long startTime = System.currentTimeMillis();
                 for (int i = 0; i < Integer.parseInt(settingData.getCount()); i++) {
                     Thread.sleep(Integer.parseInt(settingData.getInterval()));
@@ -247,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
                         List<String> gridValues = new ArrayList<>();
                         gridValues.add(pingResultInfo.getTotalTime() + "ms");
                         long startTime = pingResultInfo.getStartTime();
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd\n HH:mm:ss", Locale.getDefault());
                         String formattedStartTime = sdf.format(new Date(startTime));
                         gridValues.add(formattedStartTime);
                         gridValues.add(String.valueOf(pingResultInfo.getScore()));
@@ -288,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                     for (int j = 1; j <= 3; j++) {
 
                         StringBuilder command = new StringBuilder();
-                        command.append("ping -c 1").append(" -s ").append(settingData.getBytes()).append(" -W 4 ").append("-t ").append(i).append(" ").append(ipAddress);
+                        command.append("ping -c 1").append(" -s ").append(settingData.getBytes()).append(" -W 2 ").append("-t ").append(i).append(" ").append(ipAddress);
                         Process process = Runtime.getRuntime().exec(command.toString());
                         BufferedReader inputStream = new BufferedReader(new InputStreamReader(process.getInputStream()));
                         String line;

@@ -51,7 +51,7 @@ public class DetailedInfoActivity extends AppCompatActivity {
                 domainTextView.setText(pingResult.getIp());
 
                 long startTime = pingResult.getStartTime();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd\n HH:mm:ss", Locale.getDefault());
                 String formattedStartTime = sdf.format(new Date(startTime));
 
                 List<String> gridValues = Arrays.asList(
